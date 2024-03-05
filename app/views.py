@@ -5,6 +5,7 @@ from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.utils import secure_filename
 from app.models import UserProfile
 from app.forms import LoginForm
+from werkzeug.security import check_password_hash
 
 
 ###
@@ -43,7 +44,7 @@ def login():
 
     # change this to actually validate the entire form submission
     # and not just one field
-    if form.username.data:
+    #if form.username.data:
         # Get the username and password values from the form.
 
         # Using your model, query database for a user based on the username
@@ -51,13 +52,28 @@ def login():
         # You will need to import the appropriate function to do so.
         # Then store the result of that query to a `user` variable so it can be
         # passed to the login_user() method below.
+    if form.validate_on_submit():
+        username = form.username.data
+        password = form.password.data
+
+        #user = UserProfile.query.filter_by(username=username).first()
+        user = db.session.execute(db.select(UserProfile).filter_by(username=username)).scalar()
+
+        if user and check_password_hash(user.password, password):
+            login_user(user)
+            flash('Logged in successfully.', 'success')
+            return redirect(url_for('home'))  # Redirect to the upload route or any other route
+        else:
+            flash('Invalid username or password.', 'danger')
+
+    return render_template("login.html", form=form)    
 
         # Gets user id, load into session
-        login_user(user)
+       # login_user(user)
 
         # Remember to flash a message to the user
-        return redirect(url_for("home"))  # The user should be redirected to the upload form instead
-    return render_template("login.html", form=form)
+        #return redirect(url_for("home"))  # The user should be redirected to the upload form instead
+    #return render_template("login.html", form=form)
 
 # user_loader callback. This callback is used to reload the user object from
 # the user ID stored in the session
