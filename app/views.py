@@ -101,6 +101,13 @@ def load_user(id):
 ###
 
 # Flash errors from the form if validation fails
+
+@app.route('/logout')
+def logout():
+    logout_user()
+    flash('You have been logged out successfully.', 'success')
+    return redirect(url_for('home'))
+
 def flash_errors(form):
     for field, errors in form.errors.items():
         for error in errors:
